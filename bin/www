@@ -1,0 +1,13 @@
+#!/usr/bin/env node
+
+'use strict'
+
+var logger = require('winston')
+
+var app = require('../server.js')
+
+var port = process.env.PORT || 3000
+
+app.get('server').listen(port, function () {
+  logger.info('Listening on port %s', port)
+})
