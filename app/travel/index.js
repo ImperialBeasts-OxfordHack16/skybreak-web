@@ -25,9 +25,14 @@ router.get('/search', function (req, res) {
     qs: {
       query: req.query.place
     }
-  }, function (err, req, body) {
+  }, function (err, sres, body) {
     if (err) {
       logger.error(err)
+      return res.status(500).end()
+    }
+
+    if (sres.statusCode !== 200) {
+      logger.error(body)
       return res.status(500).end()
     }
 
@@ -51,21 +56,26 @@ function getPlaceDetails (placeId) {
       qs: {
         id: placeId
       }
-    }, function (err, req, body) {
+    }, function (err, sres, body) {
       if (err) {
         return reject(err)
       }
+
+      if (sres.statusCode !== 200) {
+        return reject(body)
+      }
+
       resolve(body)
     })
   })
 }
 
 function extractPlaceDetails (body) {
-  return Promise.resolve({
+  return {
     id: body.Places[0].PlaceId,
     place: body.Places[0].PlaceName,
     country: body.Places[0].CountryName
-  })
+  }
 }
 
 function geoMapLocation (place) {
@@ -88,10 +98,15 @@ function geoMapLocation (place) {
 
 router.get('/flight', function (req, res) {
   new Promise(function (resolve, reject) {
-    sky.get(`/browsequotes/v1.0/UK/GBP/en-GB/${req.query.from}/${req.query.to}/2016-12`, function (err, sreq, body) {
+    sky.get(`/browsequotes/v1.0/UK/GBP/en-GB/${req.query.from}/${req.query.to}/2016-12`, function (err, sres, body) {
       if (err) {
         return reject(err)
       }
+
+      if (sres.statusCode !== 200) {
+        return reject(body)
+      }
+
       var mean = l.mean(body.Quotes.map(function (val) {
         return val.MinPrice
       }))
