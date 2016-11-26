@@ -89,6 +89,12 @@ function geoMapLocation (place) {
   }).then(function (loc) {
     return loc.results[0].geometry
   }).then(function (geom) {
+    if (!geom.bounds) {
+      return {
+        latitude: Number.NaN,
+        longitude: Number.NaN
+      }
+    }
     return {
       latitude: (geom.bounds.northeast.lat + geom.bounds.southwest.lat) / 2,
       longitude: (geom.bounds.northeast.lng + geom.bounds.southwest.lng) / 2
@@ -125,6 +131,10 @@ router.get('/flight', function (req, res) {
 
     return Promise.all([p1, p2])
     .then(function (coords) {
+      if (Number.isNaN(coords[0].latitude) ||
+          Number.isNaN(coords[1].latitude)) {
+        return Number.NaN
+      }
       return geolib.getDistance(coords[0], coords[1])
     }).then(function (dist) {
       ret.distance = dist / 1000
